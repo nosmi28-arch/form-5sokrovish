@@ -409,6 +409,7 @@
     <div class="ornament">✦ ✦ ✦</div>
     <div class="thankyou-title">Спасибо, мои хорошие</div>
     <div class="thankyou-desc" id="tyDesc"></div>
+    <div style="margin-bottom: 8px; color: #8a7a6e; font-size: 0.9rem;">🎁 Промокод на скидку:</div>
     <div class="promo-code">ДРАГОЦЕННОСТЬ</div>
     <a href="https://opytduraka.online/5treasures" target="_blank" class="btn">Перейти на курс</a>
   </div>
@@ -486,7 +487,9 @@ function submitForm() {
   .then(res => {
     if (res.ok) {
       const ty = document.getElementById('tyDesc');
-      ty.textContent = `Мы прочтём каждый ваш вопрос. А ответы на них — глубже, чем можно сказать в двух словах — мы разберём на курсе. Потому что за вашими вопросами стоят те самые пять сокровищ, которые мы постараемся раскрыть на занятии.`;
+      ty.textContent = `Мы прочтём каждый ваш вопрос. А ответы на них — глубже, чем можно сказать в двух словах — мы разберём на курсе. Потому что за вашими вопросами стоят те самые пять сокровищ, которые мы постараемся раскрыть на занятии.
+
+Приходите. Разберёмся вместе.`;
       goTo(6);
     } else {
       alert('Ошибка при отправке. Попробуйте ещё раз.');
