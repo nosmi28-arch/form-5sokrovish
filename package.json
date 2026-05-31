@@ -1,0 +1,9 @@
+{
+  "name": "form-5-sokrovish",
+  "version": "1.0.0",
+  "description": "Форма «5 сокровищ человека» с отправкой в Telegram",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

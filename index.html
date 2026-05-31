@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Задай вопрос Мастеру — 5 сокровищ человека</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #1a1512;
+    color: #f5f0eb;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .form-container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 50% 30%, #2a221e 0%, #1a1512 70%);
+  }
+
+  .slide {
+    position: absolute;
+    width: 100%;
+    max-width: 680px;
+    padding: 40px 32px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+
+  .slide.exit {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  .welcome-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f5e6d3, #c9a96e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .welcome-desc {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #b8aba0;
+    margin-bottom: 32px;
+    white-space: pre-line;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 16px 40px;
+    border: none;
+    border-radius: 100px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #c9a96e, #b8914a);
+    color: #1a1512;
+  }
+
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,169,110,0.3); }
+  .btn:active { transform: translateY(0); }
+  .btn-secondary {
+    background: transparent;
+    color: #c9a96e;
+    border: 1px solid rgba(201,169,110,0.3);
+    padding: 12px 32px;
+    margin-top: 8px;
+  }
+  .btn-secondary:hover { background: rgba(201,169,110,0.1); box-shadow: none; }
+
+  /* Progress bar */
+  .progress-wrap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 100;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #c9a96e, #e8c88e);
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  /* Question styles */
+  .question-number {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #c9a96e;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .question-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    color: #f5f0eb;
+  }
+
+  .question-desc {
+    font-size: 0.95rem;
+    color: #8a7a6e;
+    margin-bottom: 28px;
+    white-space: pre-line;
+  }
+
+  /* Choices */
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+
+  .choice-btn {
+    display: block;
+    width: 100%;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    color: #f5f0eb;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+
+  .choice-btn:hover {
+    background: rgba(201,169,110,0.1);
+    border-color: rgba(201,169,110,0.3);
+  }
+
+  .choice-btn.selected {
+    background: rgba(201,169,110,0.15);
+    border-color: #c9a96e;
+    padding-left: 28px;
+  }
+
+  .choice-btn.selected::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: #c9a96e;
+    border-radius: 50%;
+  }
+
+  /* Long text */
+  .long-text-area {
+    width: 100%;
+    min-height: 140px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    color: #f5f0eb;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color 0.25s;
+  }
+
+  .long-text-area:focus {
+    outline: none;
+    border-color: #c9a96e;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .long-text-area::placeholder { color: #6a5a4e; }
+
+  /* Bottom nav */
+  .nav-bottom {
+    margin-top: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back-link {
+    color: #8a7a6e;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover { color: #c9a96e; }
+
+  /* Thank you */
+  .thankyou-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #f5e6d3, #c9a96e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .thankyou-desc {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #b8aba0;
+    margin-bottom: 24px;
+    white-space: pre-line;
+  }
+
+  .promo-code {
+    display: inline-block;
+    padding: 10px 24px;
+    background: rgba(201,169,110,0.15);
+    border: 1px dashed #c9a96e;
+    border-radius: 8px;
+    color: #c9a96e;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    letter-spacing: 3px;
+    margin-bottom: 24px;
+  }
+
+  /* Spin animation */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(26,21,18,0.3);
+    border-top-color: #1a1512;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .slide { padding: 28px 20px; }
+    .welcome-title { font-size: 1.8rem; }
+    .question-title { font-size: 1.3rem; }
+    .thankyou-title { font-size: 1.7rem; }
+    .btn { width: 100%; text-align: center; }
+  }
+
+  /* Decorative */
+  .ornament {
+    text-align: center;
+    color: #c9a96e;
+    opacity: 0.3;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    letter-spacing: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="form-container" id="app">
+  <div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+
+  <!-- SLIDE 0: Welcome -->
+  <div class="slide active" data-step="0">
+    <div class="ornament">✦ ✦ ✦</div>
+    <div class="welcome-title">Мир вашему дому, мои хорошие</div>
+    <div class="welcome-desc">Я приглашаю вас заглянуть внутрь себя.
+Прямо сейчас. До того, как мы встретимся на курсе.
+
+Ниже — несколько вопросов.
+Без правильных ответов. Просто честно.
+
+А в конце вы сможете задать свой вопрос мне лично.</div>
+    <button class="btn" onclick="goTo(1)">Начнём</button>
+  </div>
+
+  <!-- SLIDE 1 -->
+  <div class="slide" data-step="1">
+    <div class="question-number">Вопрос 1 из 5</div>
+    <div class="question-title">Когда вы остаётесь наедине с собой — что вы чувствуете?</div>
+    <div class="question-desc">Выберите один вариант</div>
+    <div class="choices" data-question="1">
+      <button class="choice-btn" data-value="Спокойствие и тишину внутри" onclick="select(this,1)">Спокойствие и тишину внутри</button>
+      <button class="choice-btn" data-value="Тревогу и пустоту" onclick="select(this,1)">Тревогу и пустоту</button>
+      <button class="choice-btn" data-value="Хочется чем-то себя занять" onclick="select(this,1)">Хочется чем-то себя занять</button>
+      <button class="choice-btn" data-value="Я редко бываю наедине с собой" onclick="select(this,1)">Я редко бываю наедине с собой</button>
+      <button class="choice-btn" data-value="Другое" onclick="select(this,1)">Другое</button>
+    </div>
+    <div class="nav-bottom">
+      <span class="back-link" onclick="goTo(0)">← Назад</span>
+      <button class="btn" id="next1" onclick="goTo(2)" disabled>Дальше</button>
+    </div>
+  </div>
+
+  <!-- SLIDE 2 -->
+  <div class="slide" data-step="2">
+    <div class="question-number">Вопрос 2 из 5</div>
+    <div class="question-title">Что из этого вам сейчас нужнее всего?</div>
+    <div class="question-desc">Выберите одно</div>
+    <div class="choices" data-question="2">
+      <button class="choice-btn" data-value="Радость — вернуть вкус к дню" onclick="select(this,2)">Радость — вернуть вкус к дню</button>
+      <button class="choice-btn" data-value="Близость — настоящую, без масок" onclick="select(this,2)">Близость — настоящую, без масок</button>
+      <button class="choice-btn" data-value="Силу — без нажима, без насилия над собой" onclick="select(this,2)">Силу — без нажима, без насилия над собой</button>
+      <button class="choice-btn" data-value="Свободу — не зависящую от обстоятельств" onclick="select(this,2)">Свободу — не зависящую от обстоятельств</button>
+      <button class="choice-btn" data-value="Счастье — тихое, своё, не напоказ" onclick="select(this,2)">Счастье — тихое, своё, не напоказ</button>
+      <button class="choice-btn" data-value="Всё сразу. Или не знаю." onclick="select(this,2)">Всё сразу. Или не знаю.</button>
+    </div>
+    <div class="nav-bottom">
+      <span class="back-link" onclick="goTo(1)">← Назад</span>
+      <button class="btn" id="next2" onclick="goTo(3)" disabled>Дальше</button>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 -->
+  <div class="slide" data-step="3">
+    <div class="question-number">Вопрос 3 из 5</div>
+    <div class="question-title">Бывало ли у вас такое: вроде есть всё — дом, работа, люди рядом — а внутри… не то?</div>
+    <div class="choices" data-question="3">
+      <button class="choice-btn" data-value="Да, часто" onclick="select(this,3)">Да, часто</button>
+      <button class="choice-btn" data-value="Да, иногда" onclick="select(this,3)">Да, иногда</button>
+      <button class="choice-btn" data-value="Нет, я в порядке" onclick="select(this,3)">Нет, я в порядке</button>
+      <button class="choice-btn" data-value="Сложно ответить" onclick="select(this,3)">Сложно ответить</button>
+    </div>
+    <div class="nav-bottom">
+      <span class="back-link" onclick="goTo(2)">← Назад</span>
+      <button class="btn" id="next3" onclick="goTo(4)" disabled>Дальше</button>
+    </div>
+  </div>
+
+  <!-- SLIDE 4 -->
+  <div class="slide" data-step="4">
+    <div class="question-number">Вопрос 4 из 5</div>
+    <div class="question-title">Что вам ближе: вы ищете опору снаружи или внутри?</div>
+    <div class="question-desc">(люди, деньги, статус) vs (покой, состояние, смысл)</div>
+    <div class="choices" data-question="4">
+      <button class="choice-btn" data-value="Скорее снаружи" onclick="select(this,4)">Скорее снаружи</button>
+      <button class="choice-btn" data-value="Скорее внутри" onclick="select(this,4)">Скорее внутри</button>
+      <button class="choice-btn" data-value="И то, и другое" onclick="select(this,4)">И то, и другое</button>
+      <button class="choice-btn" data-value="Пока не понял(а)" onclick="select(this,4)">Пока не понял(а)</button>
+    </div>
+    <div class="nav-bottom">
+      <span class="back-link" onclick="goTo(3)">← Назад</span>
+      <button class="btn" id="next4" onclick="goTo(5)" disabled>Дальше</button>
+    </div>
+  </div>
+
+  <!-- SLIDE 5 -->
+  <div class="slide" data-step="5">
+    <div class="question-number">Вопрос 5 из 5</div>
+    <div class="question-title">Какой вопрос вы хотите задать Мастеру?</div>
+    <div class="question-desc">Сформулируйте его прямо сейчас. Честно. Как есть. Без красивых слов.
+
+Может быть про отношения, деньги, здоровье, пустоту внутри, поиск себя...</div>
+    <textarea class="long-text-area" id="q5" placeholder="Напишите ваш вопрос здесь..." oninput="checkLongText()"></textarea>
+    <div class="nav-bottom">
+      <span class="back-link" onclick="goTo(4)">← Назад</span>
+      <button class="btn" id="next5" onclick="submitForm()" disabled>Отправить</button>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Thank you -->
+  <div class="slide" data-step="6">
+    <div class="ornament">✦ ✦ ✦</div>
+    <div class="thankyou-title">Спасибо, мои хорошие</div>
+    <div class="thankyou-desc" id="tyDesc"></div>
+    <div class="promo-code">ДРАГОЦЕННОСТЬ</div>
+    <a href="https://opytduraka.online/5treasures" target="_blank" class="btn">Перейти на курс</a>
+  </div>
+</div>
+
+<script>
+const answers = {};
+
+function select(el, qNum) {
+  const parent = el.parentElement;
+  parent.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[qNum] = el.dataset.value;
+  document.getElementById('next' + qNum).disabled = false;
+}
+
+function checkLongText() {
+  const val = document.getElementById('q5').value.trim();
+  const btn = document.getElementById('next5');
+  btn.disabled = val.length < 3;
+  if (val.length >= 3) answers[5] = val;
+}
+
+let currentStep = 0;
+
+function goTo(step) {
+  const slides = document.querySelectorAll('.slide');
+  slides.forEach(s => {
+    s.classList.remove('active', 'exit');
+  });
+
+  if (step > currentStep) {
+    slides[currentStep].classList.add('exit');
+  }
+
+  currentStep = step;
+  slides[step].classList.add('active');
+
+  // Progress
+  const total = 6;
+  const pct = Math.round((step / (total - 1)) * 100);
+  document.getElementById('progress').style.width = pct + '%';
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const nextBtn = document.getElementById('next' + currentStep);
+    if (nextBtn && !nextBtn.disabled) {
+      nextBtn.click();
+    }
+  }
+});
+
+function submitForm() {
+  const btn = document.getElementById('next5');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Отправка...';
+
+  const data = {
+    q1: answers[1] || '',
+    q2: answers[2] || '',
+    q3: answers[3] || '',
+    q4: answers[4] || '',
+    q5: answers[5] || '',
+    timestamp: new Date().toISOString()
+  };
+
+  fetch('/api/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.ok) {
+      const ty = document.getElementById('tyDesc');
+      ty.textContent = `Мы прочтём каждый ваш вопрос. А ответы на них — глубже, чем можно сказать в двух словах — мы разберём на курсе. Потому что за вашими вопросами стоят те самые пять сокровищ, которые мы постараемся раскрыть на занятии.`;
+      goTo(6);
+    } else {
+      alert('Ошибка при отправке. Попробуйте ещё раз.');
+      btn.disabled = false;
+      btn.textContent = 'Отправить';
+    }
+  })
+  .catch(() => {
+    alert('Ошибка соединения. Проверьте, запущен ли сервер.');
+    btn.disabled = false;
+    btn.textContent = 'Отправить';
+  });
+}
+</script>
+</body>
+</html>
